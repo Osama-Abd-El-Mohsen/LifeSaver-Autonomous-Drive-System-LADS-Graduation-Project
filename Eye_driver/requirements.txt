@@ -1,0 +1,5 @@
+pyTelegramBotAPI
+twilio
+telegram
+opencv-python
+selenium
