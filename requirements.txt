@@ -3,3 +3,6 @@ twilio
 telegram
 opencv-python
 selenium
+requests
+json
+urllib
