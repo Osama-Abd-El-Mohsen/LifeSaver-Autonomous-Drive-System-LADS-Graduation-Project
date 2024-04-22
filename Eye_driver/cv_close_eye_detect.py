@@ -1,55 +1,87 @@
 import cv2
-from sms import *
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 from datetime import datetime
+from pub import *
 
-eye_cascPath = 'haarcascade_eye_tree_eyeglasses.xml'  #eye detect model
-face_cascPath = 'haarcascade_frontalface_alt.xml'  #face detect model
-faceCascade = cv2.CascadeClassifier(face_cascPath)
-eyeCascade = cv2.CascadeClassifier(eye_cascPath)
-last_eye_detection_time =datetime.now()
-cap = cv2.VideoCapture(0)
+face_cascade = cv2.CascadeClassifier(
+    '/home/osama/Desktop/Eye_Driver/haarcascade_frontalface_alt.xml')
+eye_cascade = cv2.CascadeClassifier(
+    '/home/osama/Desktop/Eye_Driver/haarcascade_eye_tree_eyeglasses.xml')
 
-while True:
-    ret, img = cap.read()
-    if ret:
-        frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # Detect faces in the image
-        faces = faceCascade.detectMultiScale(
-            frame,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(30, 30),
-            # flags = cv2.CV_HAAR_SCALE_IMAGE
-        )
-        # print("Found {0} faces!".format(len(faces)))
-        if len(faces) > 0:
-            # Draw a rectangle around the faces
-            for (x, y, w, h) in faces:
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            frame_tmp = img[faces[0][1]:faces[0][1] + faces[0][3], faces[0][0]:faces[0][0] + faces[0][2]:1, :]
-            frame = frame[faces[0][1]:faces[0][1] + faces[0][3], faces[0][0]:faces[0][0] + faces[0][2]:1]
-            eyes = eyeCascade.detectMultiScale(
-                frame,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(30, 30),
-                # flags = cv2.CV_HAAR_SCALE_IMAGE
-            )
-            if len(eyes) == 0:
-                current_time = datetime.now()
-                time_difference = current_time - last_eye_detection_time
-                print(time_difference.total_seconds())
-                if time_difference.total_seconds() >= 6:
-                    print('No eyes detected for 6 seconds. Sending message...')
-                    tele_msg()
-                    last_eye_detection_time = current_time
-                    break
-            else:
-                print("eye found")
-                last_eye_detection_time = datetime.now()
-            frame_tmp = cv2.resize(frame_tmp, (400, 400), interpolation=cv2.INTER_LINEAR)
-            cv2.imshow('Face Recognition', frame_tmp)
-        waitkey = cv2.waitKey(1)
-        if waitkey == ord('q') or waitkey == ord('Q'):
-            cv2.destroyAllWindows()
-            break
+current_time = ''
+last_eye_detection_time = ''
+time_difference = ''
+fase_found = False
+
+last_eye_detection_time = datetime.now()
+
+# Function to detect eyes
+
+
+def detect_eyes(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
+    return len(eyes)
+
+# Function to detect if eyes are open or closed
+
+
+def detect_closed_eyes(img):
+    global current_time, time_difference, last_eye_detection_time, fase_found
+    eyes_count = detect_eyes(img)
+    if eyes_count == 0:
+        current_time = datetime.now()
+        time_difference = current_time - last_eye_detection_time
+        print(time_difference.total_seconds())
+        if time_difference.total_seconds() >= 6:
+            print('No eyes detected for 6 seconds. Sending message...')
+            last_eye_detection_time = current_time
+
+        return "Closed"
+    else:
+        last_eye_detection_time = datetime.now()
+        return "Open"
+
+
+# Capture video from the camera
+camera = PiCamera()
+camera.resolution = (640, 480)
+camera.framerate = 32
+rawCapture = PiRGBArray(camera, size=(640, 480))
+
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    # Extract the numpy array representation of the frame
+    image = frame.array
+
+    # Detect faces
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+    # Loop through each face and detect eyes
+    if len(faces) != 0:
+        print('Face Found')
+        for (x, y, w, h) in faces:
+            fase_found = True
+            roi = image[y:y+h, x:x+w]
+            status = detect_closed_eyes(roi)
+            cv2.putText(image, status, (x, y-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+            cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 2)
+    else:
+        print('No Face Found')
+        fase_found = False
+
+    # Display the frame
+    cv2.imshow('Eye Detection', image)
+
+    # Clear the stream in preparation for the next frame
+    rawCapture.truncate(0)
+
+    # Exit on pressing 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release the resources
+cv2.destroyAllWindows()
+camera.close()
