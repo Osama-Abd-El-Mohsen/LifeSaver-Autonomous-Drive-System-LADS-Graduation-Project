@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import time
+from sms import send_tele_msg
 
 def on_connect(client, userdata, flags, rc):
     global flag_connected
@@ -24,7 +25,12 @@ def callback_esp32_state(client, userdata, msg):
     print('ESP  state: ', str(msg.payload.decode('utf-8')))
 
 def callback_esp32_sms_state(client, userdata, msg):
-    print('ESP sms state: ', str(msg.payload.decode('utf-8')))
+    massege = str(msg.payload.decode('utf-8'))
+    print('='*30 )
+    print('ESP sms state: ',massege )
+    print('='*30 )
+    if massege == '1':
+        send_tele_msg()
 
 
 def client_subscriptions(client):

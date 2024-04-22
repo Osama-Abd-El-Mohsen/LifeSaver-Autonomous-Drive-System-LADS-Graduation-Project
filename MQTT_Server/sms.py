@@ -7,7 +7,6 @@ from twilio.rest import Client
 from location import *
 
 
-
 account_sid = 'Your-Token'
 auth_token = 'Your-auth'
 client = Client(account_sid, auth_token)
@@ -15,13 +14,13 @@ BOT_TOKEN = os.environ.get("Telegram-Token")
 
 
 
-def tele_msg():
+def send_tele_msg():
     data = getLocation()
     Latitude_Link = f'{(data["Latitude"][:(data["Latitude"].index("/"))]).strip()}'
     Longitude_Link = f'{(data["Longitude"][:(data["Longitude"].index("/"))]).strip()}'
     Google_Map_Link = f"https://maps.google.com/?q={Latitude_Link},{Longitude_Link}"
     print(Google_Map_Link)
-    bot = telebot.TeleBot("Telegram-Token")
+    bot = telebot.TeleBot("7185259409:AAFCHgJnC4Vvw83T5ZYRYoZKj6aMw3tYIa4")
 
     bot.send_message(chat_id=5896296580, text=f'''
         \n

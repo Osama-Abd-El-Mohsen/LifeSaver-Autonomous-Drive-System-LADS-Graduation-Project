@@ -1,17 +1,15 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
+#define ledPin 2
+
+long lastMsg = 0;
 const char *ssid = "Error404";
 const char *password = "Unti1W3M33tAgainbuddy";
-
 const char *mqtt_server = "192.168.1.5";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-
-long lastMsg = 0;
-
-#define ledPin 2
 
 void setup_wifi()
 {
@@ -85,12 +83,24 @@ void callback(char *topic, byte *message, unsigned int length)
     }
     Serial.println();
 
-    // Check if a message is received on the topic "rpi/broadcast"
-    if (String(topic) == "esp32/data")
+    // Check if a message is received on the topic 
+    if (String(topic) == "esp32/sms_state")
     {
-        if (messageTemp == "15")
+        if (messageTemp == "1")
         {
-            Serial.println("Action: blink LED");
+            Serial.println("=======================");
+            Serial.println("Action: Driver Sleep");
+            Serial.println("Action: Turn On buzzer");
+            Serial.println("=======================");
+            digitalWrite(ledPin,HIGH);
+        }
+
+        if (messageTemp == "0")
+        {
+            Serial.println("=======================");
+            Serial.println("Action: Driver Awake");
+            Serial.println("=======================");
+            digitalWrite(ledPin,LOW);
         }
     }
 }
