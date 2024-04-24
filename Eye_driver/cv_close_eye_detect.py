@@ -10,11 +10,15 @@ eye_cascade = cv2.CascadeClassifier(
     '/home/osama/Desktop/Eye_Driver/haarcascade_eye_tree_eyeglasses.xml')
 
 current_time = ''
+current_time2 = ''
 last_eye_detection_time = ''
+last_face_detection_time = ''
 time_difference = ''
+time_difference2 = ''
 fase_found = False
 
 last_eye_detection_time = datetime.now()
+last_face_detection_time = datetime.now()
 
 # Function to detect eyes
 
@@ -37,9 +41,11 @@ def detect_closed_eyes(img):
         if time_difference.total_seconds() >= 6:
             print('No eyes detected for 6 seconds. Sending message...')
             last_eye_detection_time = current_time
+            publish_msg('1','esp32/sms_state')
 
         return "Closed"
     else:
+        publish_msg('0','esp32/sms_state')
         last_eye_detection_time = datetime.now()
         return "Open"
 
@@ -60,6 +66,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
     # Loop through each face and detect eyes
     if len(faces) != 0:
+        last_face_detection_time = datetime.now()
         print('Face Found')
         for (x, y, w, h) in faces:
             fase_found = True
@@ -69,6 +76,14 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
             cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 2)
     else:
+        current_time2 = datetime.now()
+        time_difference2 = current_time2 - last_face_detection_time
+        print(time_difference2.total_seconds())
+        if time_difference2.total_seconds() >= 30:
+            print('No Face detected for 30 seconds. Sending message...')
+            publish_msg('1','esp32/sms_state')
+            last_face_detection_time = current_time2
+
         print('No Face Found')
         fase_found = False
 
