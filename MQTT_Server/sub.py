@@ -31,6 +31,9 @@ def callback_esp32_sms_state(client, userdata, msg):
     print('='*30 )
     if massege == '1':
         send_tele_msg()
+        file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w') 
+        file.write('1')
+        file.close()
 
 
 def client_subscriptions(client):
