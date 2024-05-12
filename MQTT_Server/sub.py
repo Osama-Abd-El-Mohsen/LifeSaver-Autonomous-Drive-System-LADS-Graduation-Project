@@ -2,6 +2,7 @@ import paho.mqtt.client as mqtt
 import time
 from sms import send_tele_msg
 
+
 def on_connect(client, userdata, flags, rc):
     global flag_connected
     flag_connected = 1
