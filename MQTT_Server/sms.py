@@ -20,7 +20,7 @@ def send_tele_msg():
     Longitude_Link = f'{(data["Longitude"][:(data["Longitude"].index("/"))]).strip()}'
     Google_Map_Link = f"https://maps.google.com/?q={Latitude_Link},{Longitude_Link}"
     print(Google_Map_Link)
-    bot = telebot.TeleBot("Token")
+    bot = telebot.TeleBot("7185259409:AAFCHgJnC4Vvw83T5ZYRYoZKj6aMw3tYIa4")
 
     bot.send_message(chat_id=5896296580, text=f'''
         \n
