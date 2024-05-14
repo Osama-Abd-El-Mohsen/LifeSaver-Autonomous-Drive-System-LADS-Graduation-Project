@@ -35,6 +35,12 @@ Address   : {data["address"]}
 {Google_Map_Link}
 ===============================
 ''')
+    
+    bot.send_message(chat_id=5896296580, text=f'''
+        \n
+ السياره تتجه الى مستشفى رقم و بها شخض ليس بخير       
+
+''')
 
 
 def send_twilio_sms():
