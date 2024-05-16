@@ -27,10 +27,8 @@ ego_vehicle_pos=''
 ############################################################################
 ############################ Hosbitals Points ##############################
 ############################################################################
-h1 = carla.Transform(carla.Location(x=325.489990, y=273.743317, z=0.300000))
-h2 = carla.Transform(carla.Location(x=176.589493, y=123.749130, z=0.300000))
-h3 = carla.Transform(carla.Location(x=307.398132, y=5.570724, z=0.300000))
-h4 = carla.Transform(carla.Location(x=10.509980, y=190.429993, z=0.300000)) #carla.Rotation(0,90,0)
+h1 = carla.Transform(carla.Location(x=50.109980, y=183.429993, z=1.300000)) #carla.Rotation(0,90,0)
+h2 = carla.Transform(carla.Location(x=150.989493, y=297.749130, z=1.300000))
 
 
 
@@ -53,8 +51,9 @@ def spawn_ego_vehicle():
     global ego_vehicle,ego_vehicle_pos
     try :
         ego_vehicle_pos =  random.choice(spawn_points)
-        ego_vehicle = world.spawn_actor(vehicle_blueprints.find('vehicle.tesla.cybertruck'), ego_vehicle_pos)
+        ego_vehicle = world.spawn_actor(vehicle_blueprints.find('vehicle.mercedes.coupe_2020'), ego_vehicle_pos)
         AllSpawndVechilesPositions.append(ego_vehicle_pos)
+        ego_vehicle.set_license_plate("HUNTER")
 
     except : 
         spawn_ego_vehicle()
@@ -66,18 +65,12 @@ def spawn_hosbitals():
 
     hospitals_locations.append(h1)
     hospitals_locations.append(h2)
-    hospitals_locations.append(h3)
-    hospitals_locations.append(h4)
 
     AllSpawndVechilesPositions.append(h1)
     AllSpawndVechilesPositions.append(h2)
-    AllSpawndVechilesPositions.append(h3)
-    AllSpawndVechilesPositions.append(h4)
 
     world.try_spawn_actor(ambulance_bp, h1)
     world.try_spawn_actor(ambulance_bp, h2)
-    world.try_spawn_actor(ambulance_bp, h3)
-    world.try_spawn_actor(ambulance_bp, h4)
 
 
 
@@ -125,7 +118,7 @@ def get_nearest_hospital():
 ###### Load Client,spawn_points,map,vehicle_blueprints and spectator #######
 ############################################################################
 client = carla.Client("localhost",2000)
-client.load_world("Town01")
+client.load_world("Town02")
 world = client.get_world()
 spectator = world.get_spectator()
 vehicle_blueprints = world.get_blueprint_library().filter('*vehicle*')
