@@ -6,7 +6,8 @@ import threading
 
 speed = ''
 angle = ''
-
+sms = ''
+esp_state = '0'
 
 def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.colors.GREEN_400):
     return ft.Container(
@@ -33,7 +34,7 @@ def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.
         height=150,
         border_radius=10,
 
-        col={"sm": 8, "md": 6, "xl": 1},
+        col={"sm": 4, "md": 6, "xl": 4},
 
     )
 
@@ -54,18 +55,15 @@ def client_subscriptions(client):
     client.subscribe("esp32/#")
 
 
-def callback_esp32_angle(client, userdata, msg):
-    print('ESP angle : ', msg.payload.decode('utf-8'))
-
-
-def callback_esp32_data(client, userdata, msg):
-    print('ESP data : ', str(msg.payload.decode('utf-8')))
-
 def callback_esp32_state(client, userdata, msg):
+    global esp_state
     print('ESP  state: ', str(msg.payload.decode('utf-8')))
+    esp_state = str(msg.payload.decode('utf-8'))
 
 def callback_esp32_sms_state(client, userdata, msg):
+    global sms
     print('ESP sms state: ', str(msg.payload.decode('utf-8')))
+    sms = str(msg.payload.decode('utf-8'))
 
 def callback_esp32_Car_Speed(client, userdata, msg):
     global speed
@@ -82,15 +80,13 @@ flag_connected = 0
 
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.message_callback_add('esp32/angle', callback_esp32_angle)
-client.message_callback_add('esp32/data', callback_esp32_data)
 client.message_callback_add('esp32/state', callback_esp32_state)
 client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
 
-client.connect('127.0.0.1', 1883)
-
+# client.connect('192.168.1.138', 1883)
+client.connect('192.168.1.138', 1883)
 # start a new thread
 client.loop_start()
 client_subscriptions(client)
@@ -111,23 +107,36 @@ def main(page):
         page.update()
 
     def update_data():
+        global esp_state
         while True:
-            x = random.randint(40, 50)
             Speed_cont.content.controls[1].controls[1].value = speed
             Angle_cont.content.controls[1].controls[1].value = angle
-            # print(Speed_cont.content.controls[1].controls[1].value)
+            Sms_cont.content.controls[1].controls[1].value = "SMS Sent" if sms == '1' else " "
+
+            esp_text_state.value = "ESP Connected" if esp_state == '1' else "ESP Not Connected"
+
+            esp_text_state.color = ft.colors.GREEN_400 if esp_state == '1' else ft.colors.RED_400
+
+            print(esp_text_state.value)
             time.sleep(1)
             page.update()
 
-    theme_toggle_button = ft.IconButton(
-        toggle_theme_mode_icon, on_click=toggle_theme_mode)
+    theme_toggle_button = ft.IconButton(toggle_theme_mode_icon, on_click=toggle_theme_mode)
+    esp_text_state = ft.Text(
+        "Esp_Not_Connected",
+        weight=ft.FontWeight.BOLD, 
+        size=18,
+        color=ft.colors.RED_400)
+
     page.appbar = ft.AppBar(
         leading=ft.Icon(ft.icons.CAR_CRASH),
         title=ft.Text("LDAS APP"),
         bgcolor=ft.colors.with_opacity(
             0.04, ft.cupertino_colors.SYSTEM_BACKGROUND),
         actions=[
-            theme_toggle_button]
+            esp_text_state,
+            theme_toggle_button
+            ]
     )
 
     page.adaptive = True
@@ -161,12 +170,18 @@ def main(page):
         "Angle",
     )
 
+    Sms_cont = Make_container(
+        "https://i.ibb.co/4NSnsCk/communication-11685202.png",
+        "Sms",
+    )
+
     page.add(
         ft.SafeArea(
             ft.ResponsiveRow(
                 [
                     Speed_cont,
                     Angle_cont,
+                    Sms_cont
                 ],
             )
         )

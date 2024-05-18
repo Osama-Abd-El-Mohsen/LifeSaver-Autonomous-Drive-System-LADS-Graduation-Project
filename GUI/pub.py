@@ -23,6 +23,13 @@ def publish_msg(content:str,topic:str):
 
 while True:
 
-    publish_msg(str(random.randint(0,90)),'esp32/CarSteer')
-    publish_msg('Conected','esp32/state')
-    publish_msg(str(random.randint(40,50)),'esp32/CarSpeed')
+    print('='*20)
+    publish_msg(str(1),'esp32/state')
+    publish_msg(str(1),'esp32/sms_state')
+    print('='*20)
+    time.sleep(2)
+    print('='*20)
+    publish_msg(str(0),'esp32/state')
+    publish_msg(str(0),'esp32/sms_state')
+    print('='*20)
+    time.sleep(2)
