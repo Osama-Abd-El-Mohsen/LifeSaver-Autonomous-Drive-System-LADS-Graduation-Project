@@ -195,7 +195,7 @@ def main(page):
     )
 
     Sms_cont = Make_container(
-        "https://i.ibb.co/ByKp5qB/aa-Asset-4.png",
+        "https://i.ibb.co/b3TgFhX/aa-Asset-6.png",
         "Sms",
     )
 
