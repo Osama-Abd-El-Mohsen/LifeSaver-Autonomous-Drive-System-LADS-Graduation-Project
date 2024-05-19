@@ -4,41 +4,19 @@ import time
 import random
 import threading
 
+############################################################################
+############################ Global Variables ##############################
+############################################################################
 speed = ''
 angle = ''
 sms = ''
 esp_state = '0'
 
-def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.colors.GREEN_400):
-    return ft.Container(
-        content=ft.Row(
-            [
-                ft.Image(
-                    src=image, fit='CONTAIN'),
-
-                ft.Column(
-                    [
-                        ft.Text(Title, weight=ft.FontWeight.BOLD, size=40),
-                        ft.Text(content_text, size=50,
-                                weight=ft.FontWeight.BOLD, color=color),
-                    ]
-                ),
-            ],
-        ),
-        margin=5,
-        padding=10,
-        alignment=ft.alignment.top_right,
-        bgcolor='#90CAF9,0.05',
-        blur=10,
-        width=150,
-        height=150,
-        border_radius=10,
-
-        col={"sm": 4, "md": 6, "xl": 4},
-
-    )
 
 
+############################################################################
+############################ MQTT Broker Func ##############################
+############################################################################
 def on_connect(client, userdata, flags, rc):
     global flag_connected
     flag_connected = 1
@@ -75,6 +53,47 @@ def callback_esp32_CarSteer(client, userdata, msg):
     print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
     angle = str(msg.payload.decode('utf-8'))
 
+
+
+############################################################################
+######################### Create Container Wedgit ##########################
+############################################################################
+def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.colors.ORANGE_400):
+    return ft.Container(
+        content=ft.Row(
+            [
+                ft.Image(
+                    src=image, fit='CONTAIN',),
+                    
+
+                ft.Text('   ', weight=ft.FontWeight.BOLD, size=40),
+                ft.Column(
+                    [
+                        ft.Text(Title, weight=ft.FontWeight.BOLD, size=35),
+                        ft.Text(content_text, size=35,
+                                weight=ft.FontWeight.BOLD, color=color),
+                    ]
+                ),
+            ],
+        ),
+        margin=5,
+        padding=10,
+        alignment=ft.alignment.top_right,
+        bgcolor='#90CAF9,0.05',
+        blur=10,
+        width=150,
+        height=150,
+        border_radius=10,
+
+        col={"sm": 6, "md": 6, "xl": 4},
+
+    )
+
+
+
+############################################################################
+############################ Start MQTT Broker #############################
+############################################################################
 client = mqtt.Client("GUI_client1") 
 flag_connected = 0
 
@@ -86,12 +105,17 @@ client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
 
 # client.connect('192.168.1.138', 1883)
-client.connect('192.168.1.138', 1883)
+client.connect('127.0.0.1', 1883)
 # start a new thread
 client.loop_start()
 client_subscriptions(client)
 print("......client setup complete............")
 
+
+
+############################################################################
+################################ Main Page #################################
+############################################################################
 def main(page):
     toggle_theme_mode_icon = ft.icons.DARK_MODE
 
@@ -109,28 +133,28 @@ def main(page):
     def update_data():
         global esp_state
         while True:
-            Speed_cont.content.controls[1].controls[1].value = speed
-            Angle_cont.content.controls[1].controls[1].value = angle
-            Sms_cont.content.controls[1].controls[1].value = "SMS Sent" if sms == '1' else " "
+            Speed_cont.content.controls[2].controls[1].value = speed + 'km/h'
+            Angle_cont.content.controls[2].controls[1].value = angle + 'º'
+            Sms_cont.content.controls[2].controls[1].value = "SmsSent" if sms == '1' else " "
+            State_cont.content.controls[2].controls[1].value = "Automated" if sms == '1' else "Manual"
 
             esp_text_state.value = "ESP Connected" if esp_state == '1' else "ESP Not Connected"
 
             esp_text_state.color = ft.colors.GREEN_400 if esp_state == '1' else ft.colors.RED_400
 
-            print(esp_text_state.value)
             time.sleep(1)
             page.update()
 
     theme_toggle_button = ft.IconButton(toggle_theme_mode_icon, on_click=toggle_theme_mode)
     esp_text_state = ft.Text(
-        "Esp_Not_Connected",
+        "Esp Not Connected",
         weight=ft.FontWeight.BOLD, 
-        size=18,
+        size=15,
         color=ft.colors.RED_400)
 
     page.appbar = ft.AppBar(
-        leading=ft.Icon(ft.icons.CAR_CRASH),
-        title=ft.Text("LDAS APP"),
+        title=ft.Text("Eagle Eye App",color='#f26822',weight=ft.FontWeight.BOLD,size=20),
+        leading=ft.Image(src='https://i.ibb.co/CJFzR9B/aa-Asset-5.png', fit='CONTAIN'),
         bgcolor=ft.colors.with_opacity(
             0.04, ft.cupertino_colors.SYSTEM_BACKGROUND),
         actions=[
@@ -166,13 +190,18 @@ def main(page):
     )
 
     Angle_cont = Make_container(
-        "https://i.ibb.co/zxVwq4n/steering-wheel.png",
+        "https://i.ibb.co/bBDqmzr/aa-Asset-2.png",
         "Angle",
     )
 
     Sms_cont = Make_container(
-        "https://i.ibb.co/4NSnsCk/communication-11685202.png",
+        "https://i.ibb.co/ByKp5qB/aa-Asset-4.png",
         "Sms",
+    )
+
+    State_cont = Make_container(
+        "https://i.ibb.co/SmXRVwZ/aa-Asset-5.png",
+        "Driving State",
     )
 
     page.add(
@@ -181,7 +210,8 @@ def main(page):
                 [
                     Speed_cont,
                     Angle_cont,
-                    Sms_cont
+                    State_cont,
+                    Sms_cont,
                 ],
             )
         )
