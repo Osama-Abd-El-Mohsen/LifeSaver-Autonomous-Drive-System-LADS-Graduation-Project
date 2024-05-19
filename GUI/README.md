@@ -1,6 +1,10 @@
 # Installation
 
 - ### Install Requirments (Tested On Python 3.11.5)
+  - Make **Virtual Environment**
+  - `python -m venv venv `
+  - Activate the environment
+  - `venv\Scripts\activate`
   - First Go To GUI Directory
   - `cd Project3_GUI`
   - Then Install Requirements
