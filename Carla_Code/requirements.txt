@@ -1,0 +1,4 @@
+carla==0.9.14
+numpy 
+opencv-python
+keyboard
