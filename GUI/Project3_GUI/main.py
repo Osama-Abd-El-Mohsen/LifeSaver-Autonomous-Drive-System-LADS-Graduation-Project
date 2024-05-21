@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import time
 import random
 import threading
+from sms import send_tele_msg
 
 ############################################################################
 ############################ Global Variables ##############################
@@ -38,10 +39,6 @@ def callback_esp32_state(client, userdata, msg):
     print('ESP  state: ', str(msg.payload.decode('utf-8')))
     esp_state = str(msg.payload.decode('utf-8'))
 
-def callback_esp32_sms_state(client, userdata, msg):
-    global sms
-    print('ESP sms state: ', str(msg.payload.decode('utf-8')))
-    sms = str(msg.payload.decode('utf-8'))
 
 def callback_esp32_Car_Speed(client, userdata, msg):
     global speed
@@ -53,6 +50,18 @@ def callback_esp32_CarSteer(client, userdata, msg):
     print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
     angle = str(msg.payload.decode('utf-8'))
 
+def callback_esp32_sms_state(client, userdata, msg):
+    global sms
+    sms = str(msg.payload.decode('utf-8'))
+    massege = str(msg.payload.decode('utf-8'))
+    print('='*30 )
+    print('ESP sms state: ',massege )
+    print('='*30 )
+    if massege == '1':
+        file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w') 
+        file.write('1')
+        file.close()
+        send_tele_msg()
 
 
 ############################################################################
@@ -139,7 +148,6 @@ def main(page):
             State_cont.content.controls[2].controls[1].value = "Automated" if sms == '1' else "Manual"
 
             esp_text_state.value = "ESP Connected" if esp_state == '1' else "ESP Not Connected"
-
             esp_text_state.color = ft.colors.GREEN_400 if esp_state == '1' else ft.colors.RED_400
 
             time.sleep(1)
