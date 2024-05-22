@@ -4,10 +4,15 @@ from picamera import PiCamera
 from datetime import datetime
 from pub import *
 
+# Load the pre-trained classifiers for face and eye detection from XML files
+# These classifiers are part of the OpenCV library and use the Haar feature-based 
+# cascade classifiers for object detection.
 face_cascade = cv2.CascadeClassifier(
-    '/home/osama/Desktop/Eye_Driver/haarcascade_frontalface_alt.xml')
+    '/home/osama/Desktop/Eye_Driver/haarcascade_frontalface_alt.xml'
+    )
 eye_cascade = cv2.CascadeClassifier(
-    '/home/osama/Desktop/Eye_Driver/haarcascade_eye_tree_eyeglasses.xml')
+    '/home/osama/Desktop/Eye_Driver/haarcascade_eye_tree_eyeglasses.xml'
+    )
 
 current_time = ''
 current_time2 = ''
@@ -21,16 +26,13 @@ last_eye_detection_time = datetime.now()
 last_face_detection_time = datetime.now()
 
 # Function to detect eyes
-
-
 def detect_eyes(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
     return len(eyes)
 
-# Function to detect if eyes are open or closed
 
-
+# Function to detect if eyes are open or closed and send 1 if eye close for 6 sec
 def detect_closed_eyes(img):
     global current_time, time_difference, last_eye_detection_time, fase_found
     eyes_count = detect_eyes(img)
