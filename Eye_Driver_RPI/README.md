@@ -1,18 +1,18 @@
 
-# Component
+># Component
 |Raspberry Pi 4 (4 or 8 ram)|Raspberry Pi Camera Board V1.3 (5MP, 1080p)|
 |--|--|
 <img src="https://makerselectronics.com/wp-content/uploads/2019/12/Board_02-2.png" alt="drawing" width="400"/>|<img src="https://techtonics.in/wp-content/uploads/2024/03/5mp-raspberry-pi-camera-module-with-cable-v1-3-tech1644-3201-2.jpg" alt="drawing" width="400"/>|
 
   - -------------
   
-# Resources
+># Resources
 - ## Here you can find a toturial on how to start up with RPI camera all steps you need [here](https://projects.raspberrypi.org/en/projects/getting-started-with-picamera)
 
   - -------------
 
 
-# Installation
+># Installation
 
 - ### Install Requirments (Tested On Python 3.11.5)
   - Make **Virtual Environment**
@@ -37,7 +37,7 @@
   - **You Can find more about msg sending and carla simulation [here](https://github.com/Osama-Abd-El-Mohsen/LifeSaver-Autonomous-Drive-System-LADS-Graduation-Project/tree/main/GUI) and [here](https://github.com/Osama-Abd-El-Mohsen/LifeSaver-Autonomous-Drive-System-LADS-Graduation-Project/tree/main/Carla_Code)**
 
 
-# Output :
+># Output :
 
 |Telegram msg |Sms|
 |----|----|
