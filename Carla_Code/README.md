@@ -30,5 +30,5 @@ h4 = carla.Transform(carla.Location(x=10.509980, y=190.429993, z=0.300000))
 
 |Town01|Town02|
 |----|----|
-|https://drive.google.com/file/d/12rFK5r0yPDK6kGE8qaoomyGk-ulQi7XS/preview|https://drive.google.com/file/d/12rFK5r0yPDK6kGE8qaoomyGk-ulQi7XS/preview|
+|https://drive.google.com/file/d/1k0Hs_EsSF9g1DlevAppp1cUxlxG6qAmO/view?usp=drive_link|https://drive.google.com/file/d/12rFK5r0yPDK6kGE8qaoomyGk-ulQi7XS/preview|
 |![Town01](https://i.ibb.co/18pvsQf/Whats-App-Image-2024-05-16-at-12-45-15-6f66bb2f.jpg)|![Town02](https://i.ibb.co/18pvsQf/Whats-App-Image-2024-05-16-at-12-45-15-6f66bb2f.jpg)|
