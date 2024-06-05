@@ -36,7 +36,7 @@ def callback_esp32_Car_Speed(client, userdata, msg):
 def callback_esp32_CarSteer(client, userdata, msg):
     print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
 
-client = mqtt.Client("rpi_client1") 
+client = mqtt.Client("laptop2") 
 flag_connected = 0
 
 client.on_connect = on_connect
@@ -48,7 +48,7 @@ client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
 
-client.connect('127.0.0.1', 1883)
+client.connect('192.168.50.97', 1883)
 
 # start a new thread
 client.loop_start()

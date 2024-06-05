@@ -58,9 +58,9 @@ def callback_esp32_sms_state(client, userdata, msg):
     print('ESP sms state: ',massege )
     print('='*30 )
     if massege == '1':
-        file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w') 
-        file.write('1')
-        file.close()
+        # file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w') 
+        # file.write('1')
+        # file.close()
         send_tele_msg()
 
 
@@ -103,7 +103,7 @@ def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.
 ############################################################################
 ############################ Start MQTT Broker #############################
 ############################################################################
-client = mqtt.Client("GUI_client1") 
+client = mqtt.Client("osama") 
 flag_connected = 0
 
 client.on_connect = on_connect
@@ -113,8 +113,8 @@ client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
 
-# client.connect('192.168.1.138', 1883)
-client.connect('127.0.0.1', 1883)
+client.connect('192.168.50.97', 1883)
+# client.connect('127.0.0.1', 1883)
 # start a new thread
 client.loop_start()
 client_subscriptions(client)

@@ -3,16 +3,13 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 from datetime import datetime
 from pub import *
+import sys
 
-# Load the pre-trained classifiers for face and eye detection from XML files
-# These classifiers are part of the OpenCV library and use the Haar feature-based 
-# cascade classifiers for object detection.
+
 face_cascade = cv2.CascadeClassifier(
-    '/home/osama/Desktop/Eye_Driver/haarcascade_frontalface_alt.xml'
-    )
+    '/home/osama/Desktop/Eye_Driver/haarcascade_frontalface_alt.xml')
 eye_cascade = cv2.CascadeClassifier(
-    '/home/osama/Desktop/Eye_Driver/haarcascade_eye_tree_eyeglasses.xml'
-    )
+    '/home/osama/Desktop/Eye_Driver/haarcascade_eye_tree_eyeglasses.xml')
 
 current_time = ''
 current_time2 = ''
@@ -26,13 +23,16 @@ last_eye_detection_time = datetime.now()
 last_face_detection_time = datetime.now()
 
 # Function to detect eyes
+
+
 def detect_eyes(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
     return len(eyes)
 
+# Function to detect if eyes are open or closed
 
-# Function to detect if eyes are open or closed and send 1 if eye close for 6 sec
+
 def detect_closed_eyes(img):
     global current_time, time_difference, last_eye_detection_time, fase_found
     eyes_count = detect_eyes(img)
@@ -40,12 +40,23 @@ def detect_closed_eyes(img):
         current_time = datetime.now()
         time_difference = current_time - last_eye_detection_time
         print(time_difference.total_seconds())
+        
+        cv2.putText(img,str(time_difference.total_seconds()), (100,20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (125, 246, 55))
+
+        
         if time_difference.total_seconds() >= 6:
             print('No eyes detected for 6 seconds. Sending message...')
             last_eye_detection_time = current_time
             publish_msg('1','esp32/sms_state')
+            time.sleep(2)
+            publish_msg('0','esp32/sms_state')
+            sys.exit()
+
+ 
+
 
         return "Closed"
+
     else:
         publish_msg('0','esp32/sms_state')
         last_eye_detection_time = datetime.now()
@@ -61,7 +72,6 @@ rawCapture = PiRGBArray(camera, size=(640, 480))
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # Extract the numpy array representation of the frame
     image = frame.array
-
     # Detect faces
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -81,7 +91,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         current_time2 = datetime.now()
         time_difference2 = current_time2 - last_face_detection_time
         print(time_difference2.total_seconds())
-        if time_difference2.total_seconds() >= 30:
+        if time_difference2.total_seconds() >= 60:
             print('No Face detected for 30 seconds. Sending message...')
             publish_msg('1','esp32/sms_state')
             last_face_detection_time = current_time2
