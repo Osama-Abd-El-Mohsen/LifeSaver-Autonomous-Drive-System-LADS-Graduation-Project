@@ -25,7 +25,7 @@
 - ### Run MQTT Broker Server and add your intrest topics and topic callback functions
   Ex :
   ``` python
-  client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
+    client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
     client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
     client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
     ```
