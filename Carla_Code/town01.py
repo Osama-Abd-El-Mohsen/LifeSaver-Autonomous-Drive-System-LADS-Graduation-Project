@@ -5,6 +5,7 @@ import sys
 import keyboard
 import carla
 import math as mt
+from pub import publish_msg
 
 ############################################################################
 ########################### Import basic agent #############################
@@ -170,6 +171,11 @@ state=2
 loc = 5
 
 while True :
+    CarSpeed = ego_vehicle.get_velocity().length()
+    steer_angle = ego_vehicle.get_control().steer
+    publish_msg(str(CarSpeed), 'esp32/CarSpeed')
+    publish_msg(str(steer_angle), 'esp32/CarSteer')
+
     img = camera_data["image"]
     cv2.imshow("RGB Cam",img)
     key = cv2.waitKey(1)

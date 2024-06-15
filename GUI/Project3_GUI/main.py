@@ -113,8 +113,8 @@ client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
 
-client.connect('192.168.50.97', 1883)
-# client.connect('127.0.0.1', 1883)
+# client.connect('192.168.50.97', 1883)
+client.connect('192.168.1.138', 1883)
 # start a new thread
 client.loop_start()
 client_subscriptions(client)
