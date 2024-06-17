@@ -8,12 +8,19 @@ from sms import send_tele_msg
 ############################################################################
 ############################ Global Variables ##############################
 ############################################################################
-speed = ''
-angle = ''
+speed = 0.0
+angle = 0.0
 sms = ''
 esp_state = '0'
 
-
+def map_value(value, src_range_min=-1, src_range_max=1, dst_range_min=-180, dst_range_max=180):
+    # Ensure the value is within the source range
+    value = max(min(value, src_range_max), src_range_min)
+    # Map the value to the new range
+    src_range = src_range_max - src_range_min
+    dst_range = dst_range_max - dst_range_min
+    scaled_value = (value - src_range_min) / src_range
+    return dst_range_min + (scaled_value * dst_range)
 
 ############################################################################
 ############################ MQTT Broker Func ##############################
@@ -43,12 +50,13 @@ def callback_esp32_state(client, userdata, msg):
 def callback_esp32_Car_Speed(client, userdata, msg):
     global speed
     print('ESP  Car Speed: ', str(msg.payload.decode('utf-8')))
-    speed = str(msg.payload.decode('utf-8'))
+    speed = float(msg.payload.decode('utf-8'))
     
 def callback_esp32_CarSteer(client, userdata, msg):
     global angle
     print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
-    angle = str(msg.payload.decode('utf-8'))
+    angle = float(msg.payload.decode('utf-8'))
+    angle = map_value(angle)
 
 def callback_esp32_sms_state(client, userdata, msg):
     global sms
@@ -114,7 +122,8 @@ client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
 
 # client.connect('192.168.50.97', 1883)
-client.connect('192.168.1.138', 1883)
+# client.connect('192.168.1.138', 1883)
+client.connect('127.0.0.1', 1883)
 # start a new thread
 client.loop_start()
 client_subscriptions(client)
@@ -142,8 +151,8 @@ def main(page):
     def update_data():
         global esp_state
         while True:
-            Speed_cont.content.controls[2].controls[1].value = speed + 'km/h'
-            Angle_cont.content.controls[2].controls[1].value = angle + 'º'
+            Speed_cont.content.controls[2].controls[1].value = f'{speed:.2f}' + ' KM/H'
+            Angle_cont.content.controls[2].controls[1].value = f'{angle:.2f}' + ' º'
             Sms_cont.content.controls[2].controls[1].value = "SmsSent" if sms == '1' else " "
             State_cont.content.controls[2].controls[1].value = "Automated" if sms == '1' else "Manual"
 

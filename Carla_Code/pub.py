@@ -7,7 +7,8 @@ def on_publish(client, userdata, mid):
 
 client = mqtt.Client("windows_client2") 
 client.on_publish = on_publish
-client.connect('192.168.1.138', 1883)
+# client.connect('192.168.1.138', 1883)
+client.connect('127.0.0.1', 1883)
 
 client.loop_start()
 
@@ -20,4 +21,6 @@ def publish_msg(content:str,topic:str):
     )
     pubMsg.wait_for_publish()
 
-publish_msg('esp32/sms_state','20')
+publish_msg('20.315','esp32/CarSpeed')
+# publish_msg('1','esp32/sms_state')
+publish_msg('.23','esp32/CarSteer')
