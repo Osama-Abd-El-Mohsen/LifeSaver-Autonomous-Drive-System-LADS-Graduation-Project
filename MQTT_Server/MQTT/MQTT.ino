@@ -49,6 +49,7 @@ const int freq = 5000;
 const int PWM_channel0 = 0;
 const int PWM_channel1 = 1;
 const int resolution = 8;
+int SteerWheelState = 1;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -200,6 +201,7 @@ void connect_mqttServer() {
       client.subscribe("esp32/sms_state");
       client.subscribe("esp32/state");
       client.subscribe("esp32/CarSteer");
+      client.subscribe("esp32/SteerWheelState");
       client.publish("esp32/state", "1");
     } else {
       // attempt not successful
@@ -260,6 +262,15 @@ void callback(char *topic, byte *message, unsigned int length) {
       Serial.println("====================");
     // }
   }
+
+  if (String(topic) == "esp32/SteerWheelState") {
+    SteerWheelState = messageTemp.toInt();
+    
+      Serial.println("====================");
+      Serial.println(SteerWheelState);
+      Serial.println("====================");
+    // }
+  }
 }
 
 
@@ -305,14 +316,18 @@ void loop() {
     connect_mqttServer();
   }
   client.loop();
-  moveMotor(steer_angle_int);
-  counter = encoder.getCount() / 2;
-  Serial.println("speed");
-  Serial.println(speed);
-  Serial.println("counter");
-  Serial.println(counter);
-  Serial.println("direction");
-  Serial.println(direction);
+  if (SteerWheelState == 0)
+  {
+    moveMotor(steer_angle_int);
+    counter = encoder.getCount() / 2;
+    Serial.println("speed");
+    Serial.println(speed);
+    Serial.println("counter");
+    Serial.println(counter);
+    Serial.println("direction");
+    Serial.println(direction);
+
+  }
 
   // to publish data on topic use this example
   // client.publish("esp32/angle", "37");

@@ -4,6 +4,7 @@ import time
 import random
 import threading
 from sms import send_tele_msg
+from pub import publish_msg
 
 ############################################################################
 ############################ Global Variables ##############################
@@ -12,6 +13,7 @@ speed = 0.0
 angle = 0.0
 sms = ''
 esp_state = '0'
+steer_wheel_state = 1
 
 def map_value(value, src_range_min=-1, src_range_max=1, dst_range_min=-180, dst_range_max=180):
     # Ensure the value is within the source range
@@ -21,6 +23,9 @@ def map_value(value, src_range_min=-1, src_range_max=1, dst_range_min=-180, dst_
     dst_range = dst_range_max - dst_range_min
     scaled_value = (value - src_range_min) / src_range
     return dst_range_min + (scaled_value * dst_range)
+
+
+    
 
 ############################################################################
 ############################ MQTT Broker Func ##############################
@@ -45,6 +50,10 @@ def callback_esp32_state(client, userdata, msg):
     global esp_state
     print('ESP  state: ', str(msg.payload.decode('utf-8')))
     esp_state = str(msg.payload.decode('utf-8'))
+
+def callback_esp32_SteerWheelState(client, userdata, msg):
+    global esp_state
+    print('ESP  SteerWheelState: ', str(msg.payload.decode('utf-8')))
 
 
 def callback_esp32_Car_Speed(client, userdata, msg):
@@ -120,6 +129,7 @@ client.message_callback_add('esp32/state', callback_esp32_state)
 client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
+client.message_callback_add('esp32/SteerWheelState', callback_esp32_SteerWheelState)
 
 # client.connect('192.168.50.97', 1883)
 # client.connect('192.168.1.138', 1883)
@@ -135,6 +145,58 @@ print("......client setup complete............")
 ################################ Main Page #################################
 ############################################################################
 def main(page):
+    global steer_wheel_state
+    def change_steering_wheel_state(args):
+        
+        global steer_wheel_state
+        if steer_wheel_state == 1 :
+            steer_wheel_state = 0
+            args.control.text = 'Steering Wheel Unlocked'
+            publish_msg('0','esp32/SteerWheelState')
+
+        elif steer_wheel_state == 0 :
+            steer_wheel_state = 1
+            args.control.text = 'Steering Wheel Locked'
+            publish_msg('1','esp32/SteerWheelState')
+
+
+
+    def navigation_bar_on_change(e):
+        if e.control.selected_index == 2 :
+            page.controls.clear()
+            page.add(
+            ft.Row(
+                [
+                    steer_wheel_state_button
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+        )
+
+
+        elif e.control.selected_index == 0 :
+            page.controls.clear()
+            page.add(
+                ft.SafeArea(
+                    ft.ResponsiveRow(
+                        [
+                            Speed_cont,
+                            Angle_cont,
+                            State_cont,
+                            Sms_cont,
+                        ],
+                    )
+                )
+            )
+
+    steer_wheel_state_button = ft.FilledButton(
+        text="Steering Wheel locked" if steer_wheel_state == 1 else "Steering Wheel Unlocked",
+        style = ft.ButtonStyle(
+            bgcolor={ft.MaterialState.DEFAULT: f'#f26822'},
+        ),
+        on_click=change_steering_wheel_state
+            )
+
     toggle_theme_mode_icon = ft.icons.DARK_MODE
 
     def toggle_theme_mode(e):
@@ -195,10 +257,16 @@ def main(page):
                 selected_icon=ft.icons.COMMUTE,
                 label="Carla"),
 
+            ft.NavigationDestination(
+                icon=ft.icons.SETTINGS_OUTLINED,
+                selected_icon=ft.icons.SETTINGS,
+                label="Settings"),
+            
         ],
         border=ft.Border(
             top=ft.BorderSide(color=ft.cupertino_colors.SYSTEM_GREY2, width=0)
         ),
+        on_change = navigation_bar_on_change
     )
 
     Speed_cont = Make_container(
