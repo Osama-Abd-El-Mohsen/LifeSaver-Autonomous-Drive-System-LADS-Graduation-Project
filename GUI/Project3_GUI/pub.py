@@ -8,7 +8,8 @@ def on_publish(client, userdata, mid):
 client = mqtt.Client("osama2") 
 client.on_publish = on_publish
 # client.connect('192.168.50.97',1883)
-client.connect('192.168.1.138',1883)
+# client.connect('192.168.1.138',1883)
+client.connect('127.0.0.1',1883)
 
 client.loop_start()
 

@@ -3,12 +3,15 @@ from twilio.rest import Client
 from location import *
 import telebot
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 account_sid = 'Your-Token'
 auth_token = 'Your-auth'
+telegram_token = os.environ.get('BOT_TOKEN')
+
 client = Client(account_sid, auth_token)
-BOT_TOKEN = os.environ.get("Telegram-Token")
 
 
 def send_tele_msg():
@@ -18,9 +21,9 @@ def send_tele_msg():
     Longitude_Link = f'{(data["Longitude"][:(data["Longitude"].index("/"))]).strip()}'
     Google_Map_Link = f"https://maps.google.com/?q={Latitude_Link},{Longitude_Link}"
     print(Google_Map_Link)
-    bot = telebot.TeleBot("7185259409:AAFCHgJnC4Vvw83T5ZYRYoZKj6aMw3tYIa4")
+    bot = telebot.TeleBot(telegram_token)
 
-    bot.send_message(chat_id=5896296580, text=f'''
+    bot.send_message(chat_id=os.environ.get('CHATID1'), text=f'''
         \n
  😊سائق السياره ليس بخير        
 Location 📌 :
@@ -34,7 +37,7 @@ Address   : {data["address"]}
 ===============================
 ''')
 
-    bot.send_message(chat_id=954001997, text=f'''
+    bot.send_message(chat_id=os.environ.get('CHATID2'), text=f'''
         \n
  السياره تتجه الى مستشفى و بها شخض ليس بخير 
 ===============================
@@ -86,10 +89,10 @@ def send_sinch_sms():
     Google_Map_Link = f"https://maps.google.com/?q={Latitude_Link},{Longitude_Link}"
     print(Google_Map_Link)
 
-    servicePlanId = "f4ef359f7e5f443789288eed72d45728"
-    apiToken = "129bd47678624811a473dc36140ab21e"
-    sinchNumber = "+447520651817"
-    toNumber = "+201067992759"
+    servicePlanId =  os.environ.get('PLANID')
+    apiToken =  os.environ.get('PITOKEN')
+    sinchNumber =  os.environ.get('SINCHNUMBER')
+    toNumber =  os.environ.get('TONUMBER')
     url = "https://us.sms.api.sinch.com/xms/v1/" + servicePlanId + "/batches"
 
     payload = {

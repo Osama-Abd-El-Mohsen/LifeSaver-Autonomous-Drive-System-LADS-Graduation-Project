@@ -15,6 +15,7 @@ sms = ''
 esp_state = '0'
 steer_wheel_state = 1
 
+
 def map_value(value, src_range_min=-1, src_range_max=1, dst_range_min=-180, dst_range_max=180):
     # Ensure the value is within the source range
     value = max(min(value, src_range_max), src_range_min)
@@ -25,8 +26,6 @@ def map_value(value, src_range_min=-1, src_range_max=1, dst_range_min=-180, dst_
     return dst_range_min + (scaled_value * dst_range)
 
 
-    
-
 ############################################################################
 ############################ MQTT Broker Func ##############################
 ############################################################################
@@ -35,6 +34,7 @@ def on_connect(client, userdata, flags, rc):
     flag_connected = 1
     client_subscriptions(client)
     print("Connected to MQTT server")
+
 
 def on_disconnect(client, userdata, rc):
     global flag_connected
@@ -51,6 +51,7 @@ def callback_esp32_state(client, userdata, msg):
     print('ESP  state: ', str(msg.payload.decode('utf-8')))
     esp_state = str(msg.payload.decode('utf-8'))
 
+
 def callback_esp32_SteerWheelState(client, userdata, msg):
     global esp_state
     print('ESP  SteerWheelState: ', str(msg.payload.decode('utf-8')))
@@ -60,22 +61,24 @@ def callback_esp32_Car_Speed(client, userdata, msg):
     global speed
     print('ESP  Car Speed: ', str(msg.payload.decode('utf-8')))
     speed = float(msg.payload.decode('utf-8'))
-    
+
+
 def callback_esp32_CarSteer(client, userdata, msg):
     global angle
     print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
     angle = float(msg.payload.decode('utf-8'))
     angle = map_value(angle)
 
+
 def callback_esp32_sms_state(client, userdata, msg):
     global sms
     sms = str(msg.payload.decode('utf-8'))
     massege = str(msg.payload.decode('utf-8'))
-    print('='*30 )
-    print('ESP sms state: ',massege )
-    print('='*30 )
+    print('='*30)
+    print('ESP sms state: ', massege)
+    print('='*30)
     if massege == '1':
-        # file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w') 
+        # file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w')
         # file.write('1')
         # file.close()
         send_tele_msg()
@@ -90,7 +93,7 @@ def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.
             [
                 ft.Image(
                     src=image, fit='CONTAIN',),
-                    
+
 
                 ft.Text('   ', weight=ft.FontWeight.BOLD, size=40),
                 ft.Column(
@@ -116,11 +119,10 @@ def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.
     )
 
 
-
 ############################################################################
 ############################ Start MQTT Broker #############################
 ############################################################################
-client = mqtt.Client("osama") 
+client = mqtt.Client("osama")
 flag_connected = 0
 
 client.on_connect = on_connect
@@ -129,7 +131,7 @@ client.message_callback_add('esp32/state', callback_esp32_state)
 client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
-client.message_callback_add('esp32/SteerWheelState', callback_esp32_SteerWheelState)
+client.message_callback_add('esp32/SteerWheelState',callback_esp32_SteerWheelState)
 
 # client.connect('192.168.50.97', 1883)
 # client.connect('192.168.1.138', 1883)
@@ -140,41 +142,39 @@ client_subscriptions(client)
 print("......client setup complete............")
 
 
-
 ############################################################################
 ################################ Main Page #################################
 ############################################################################
 def main(page):
     global steer_wheel_state
+
     def change_steering_wheel_state(args):
-        
+
         global steer_wheel_state
-        if steer_wheel_state == 1 :
+        if steer_wheel_state == 1:
             steer_wheel_state = 0
             args.control.text = 'Steering Wheel Unlocked'
-            publish_msg('0','esp32/SteerWheelState')
+            steer_wheel_icon.src = 'https://i.ibb.co/82jYNBN/unlocked-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png' 
+            publish_msg('0', 'esp32/SteerWheelState')
 
-        elif steer_wheel_state == 0 :
+        elif steer_wheel_state == 0:
             steer_wheel_state = 1
             args.control.text = 'Steering Wheel Locked'
-            publish_msg('1','esp32/SteerWheelState')
-
-
+            steer_wheel_icon.src = 'https://i.ibb.co/hcMHrg0/Locked-Padlock-Coloured-Outline-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png' 
+            publish_msg('1', 'esp32/SteerWheelState')
 
     def navigation_bar_on_change(e):
-        if e.control.selected_index == 2 :
+        if e.control.selected_index == 2:
             page.controls.clear()
             page.add(
-            ft.Row(
-                [
-                    steer_wheel_state_button
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-            ),
-        )
+                ft.Stack(
+                    [
+                        steer_wheel_cntainer
+                    ],
+                )
+            )
 
-
-        elif e.control.selected_index == 0 :
+        elif e.control.selected_index == 0:
             page.controls.clear()
             page.add(
                 ft.SafeArea(
@@ -191,11 +191,24 @@ def main(page):
 
     steer_wheel_state_button = ft.FilledButton(
         text="Steering Wheel locked" if steer_wheel_state == 1 else "Steering Wheel Unlocked",
-        style = ft.ButtonStyle(
+        style=ft.ButtonStyle(
             bgcolor={ft.MaterialState.DEFAULT: f'#f26822'},
         ),
         on_click=change_steering_wheel_state
-            )
+    )
+
+    steer_wheel_icon= ft.Image(src='https://i.ibb.co/hcMHrg0/Locked-Padlock-Coloured-Outline-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png', fit='FIT_HEIGHT', height=300,animate_opacity=10)
+    steer_wheel_cntainer = ft.Container(
+        content=ft.Column(
+            [
+                steer_wheel_icon,
+                steer_wheel_state_button
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        alignment=ft.alignment.center,
+    )
 
     toggle_theme_mode_icon = ft.icons.DARK_MODE
 
@@ -224,22 +237,22 @@ def main(page):
             time.sleep(1)
             page.update()
 
-    theme_toggle_button = ft.IconButton(toggle_theme_mode_icon, on_click=toggle_theme_mode)
+    theme_toggle_button = ft.IconButton(
+        toggle_theme_mode_icon, on_click=toggle_theme_mode)
     esp_text_state = ft.Text(
         "Esp Not Connected",
-        weight=ft.FontWeight.BOLD, 
+        weight=ft.FontWeight.BOLD,
         size=15,
         color=ft.colors.RED_400)
 
     page.appbar = ft.AppBar(
-        title=ft.Text("Eagle Eye App",color='#f26822',weight=ft.FontWeight.BOLD,size=20),
+        title=ft.Text("Eagle Eye App", color='#f26822',weight=ft.FontWeight.BOLD, size=20),
         leading=ft.Image(src='https://i.ibb.co/CJFzR9B/aa-Asset-5.png', fit='CONTAIN'),
-        bgcolor=ft.colors.with_opacity(
-            0.04, ft.cupertino_colors.SYSTEM_BACKGROUND),
+        bgcolor=ft.colors.with_opacity(0.04, ft.cupertino_colors.SYSTEM_BACKGROUND),
         actions=[
             esp_text_state,
             theme_toggle_button
-            ]
+        ]
     )
 
     page.adaptive = True
@@ -250,23 +263,26 @@ def main(page):
             ft.NavigationDestination(
                 icon=ft.icons.DATA_ARRAY,
                 selected_icon=ft.icons.DATA_ARRAY_OUTLINED,
-                label="Data"),
+                label="Data"
+            ),
 
             ft.NavigationDestination(
                 icon=ft.icons.COMMUTE_SHARP,
                 selected_icon=ft.icons.COMMUTE,
-                label="Carla"),
+                label="Carla"
+            ),
 
             ft.NavigationDestination(
                 icon=ft.icons.SETTINGS_OUTLINED,
                 selected_icon=ft.icons.SETTINGS,
-                label="Settings"),
-            
+                label="Settings"
+            ),
+
         ],
         border=ft.Border(
             top=ft.BorderSide(color=ft.cupertino_colors.SYSTEM_GREY2, width=0)
         ),
-        on_change = navigation_bar_on_change
+        on_change=navigation_bar_on_change
     )
 
     Speed_cont = Make_container(
