@@ -4,19 +4,26 @@
 /*************************************************************
 ******************** Define Network Config *******************
 *************************************************************/
-// const char *ssid = "WE_D28CA0";
-// const char *ssid = "Mi 11 Lite";
-// const char *password = "00000000";
-// const char *mqtt_server = "192.168.50.97";  // RPI ip
 const char *ssid = "WE_D28CA0";
 const char *password = "31097022";
 const char *mqtt_server = "192.168.1.138";  // RPI ip
+// const char *ssid = "EC";
+// const char *password = "Hunter1235";
+// const char *mqtt_server = "192.168.199.97";  // RPI ip
 
-int prev_steer_angle = 0;
+int temp_steer_angle = 0;
 /*************************************************************
 ************************* define pins ************************
 *************************************************************/
-#define Buzzer_pin 2
+#define Buzzer_pin 22
+#define GreenLed 23
+#define RedLed 4
+#define Button 2
+#define HIGH 13
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 50;
+int sterring_wheel_state = 1;
+
 /****************************************************************/
 #define CLK 13  // CLK ENCODER
 #define DT 15   // DT ENCODER
@@ -49,7 +56,7 @@ const int freq = 5000;
 const int PWM_channel0 = 0;
 const int PWM_channel1 = 1;
 const int resolution = 8;
-int SteerWheelState = 1;
+// int SteerWheelState = 1;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -61,26 +68,23 @@ ESP32Encoder encoder;
 void moveMotor(int angle) {
   // int state = 2;
   // while (state != 0) {
-  //   Serial.println("in while");
+  Serial.println("in while");
   counter = encoder.getCount() / 2;
 
   speed = fabs(pidController(angle, 0.002, 0.002, 0.002));
   if (speed < 40) {
     speed = 40;
-  } 
-  else if (speed > 50) {
+  } else if (speed > 50) {
     speed = 50;
   }
 
   if (direction == -1) {
     motor_moveCW(speed);
     // state = 1;
-  } 
-  else if (direction == 1) {
+  } else if (direction == 1) {
     motor_moveCCW(speed);
     // state = 1;
-  } 
-  else if (direction == 0) {
+  } else if (direction == 0) {
     motor_stop();
     // state = 0;
   }
@@ -201,7 +205,7 @@ void connect_mqttServer() {
       client.subscribe("esp32/sms_state");
       client.subscribe("esp32/state");
       client.subscribe("esp32/CarSteer");
-      client.subscribe("esp32/SteerWheelState");
+      client.subscribe("esp32/s_state");
       client.publish("esp32/state", "1");
     } else {
       // attempt not successful
@@ -236,7 +240,13 @@ void callback(char *topic, byte *message, unsigned int length) {
       Serial.println("Action: Driver Sleep");
       Serial.println("Action: Turn On buzzer");
       Serial.println("=======================");
-      digitalWrite(Buzzer_pin, HIGH);
+
+      for (int i = 0; i <= 10; i++) {
+        digitalWrite(Buzzer_pin, HIGH);
+        delay(200);
+        digitalWrite(Buzzer_pin, LOW);
+        delay(200);
+      }
     }
 
     if (messageTemp == "0") {
@@ -253,22 +263,25 @@ void callback(char *topic, byte *message, unsigned int length) {
     float steer_angle_float = messageTemp.toFloat();
     float steer_angle_after_mapping = mapFloat(steer_angle_float, -1.0, 1.0, 180.0, -180.0);
     steer_angle_int = (int)steer_angle_after_mapping;
-
+    temp_steer_angle = steer_angle_int;
     // if current angle not equal prev angle (to avoid noise)
     // if (prev_steer_angle != steer_angle_int) {
-      Serial.println("====================");
-      Serial.println(steer_angle_int);
-      // prev_steer_angle = steer_angle_int;
-      Serial.println("====================");
+    Serial.println("====================");
+    Serial.println(steer_angle_int);
+    // prev_steer_angle = steer_angle_int;
+    Serial.println("====================");
     // }
   }
 
-  if (String(topic) == "esp32/SteerWheelState") {
-    SteerWheelState = messageTemp.toInt();
-    
-      Serial.println("====================");
-      Serial.println(SteerWheelState);
-      Serial.println("====================");
+  if (String(topic) == "esp32/s_state") {
+    sterring_wheel_state = ~sterring_wheel_state;
+    // Toggle the LEDs
+    digitalWrite(RedLed, !digitalRead(RedLed));
+    digitalWrite(GreenLed, !digitalRead(GreenLed));
+
+    Serial.println("====================");
+    Serial.println(sterring_wheel_state);
+    Serial.println("====================");
     // }
   }
 }
@@ -309,6 +322,12 @@ void setup() {
 
   encoder.attachHalfQuad(DT, CLK);
   encoder.setCount(0);
+  pinMode(GreenLed, OUTPUT);
+  pinMode(RedLed, OUTPUT);
+  pinMode(Button, INPUT);
+  pinMode(HIGH, OUTPUT);
+  digitalWrite(HIGH, HIGH);
+  digitalWrite(GreenLed, HIGH);
 }
 
 void loop() {
@@ -316,7 +335,21 @@ void loop() {
     connect_mqttServer();
   }
   client.loop();
-  if (SteerWheelState == 0)
+
+  if (digitalRead(Button)) {
+    unsigned long currentTime = millis();
+    while (digitalRead(Button)) {
+    }
+    // Debounce check
+    if ((millis() - currentTime) >= debounceDelay) {
+      sterring_wheel_state = ~sterring_wheel_state;
+      // Toggle the LEDs
+      digitalWrite(RedLed, !digitalRead(RedLed));
+      digitalWrite(GreenLed, !digitalRead(GreenLed));
+    }
+  }
+
+  if(sterring_wheel_state == 1)
   {
     moveMotor(steer_angle_int);
     counter = encoder.getCount() / 2;
@@ -326,8 +359,18 @@ void loop() {
     Serial.println(counter);
     Serial.println("direction");
     Serial.println(direction);
-
+    digitalWrite(R_EN, HIGH);
+    digitalWrite(L_EN, HIGH);
   }
+
+  else
+  {
+    digitalWrite(R_EN, LOW);
+    digitalWrite(L_EN, LOW);
+  }
+
+
+
 
   // to publish data on topic use this example
   // client.publish("esp32/angle", "37");

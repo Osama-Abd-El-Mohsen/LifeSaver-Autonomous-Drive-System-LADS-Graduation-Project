@@ -4,8 +4,10 @@ import time
 import random
 import threading
 from sms import send_tele_msg
-from pub import publish_msg
-
+# from pub import publish_msg
+from dotenv import load_dotenv
+import os
+load_dotenv()
 ############################################################################
 ############################ Global Variables ##############################
 ############################################################################
@@ -14,7 +16,7 @@ angle = 0.0
 sms = ''
 esp_state = '0'
 steer_wheel_state = 1
-
+ip_add = os.environ.get('IP')
 
 def map_value(value, src_range_min=-1, src_range_max=1, dst_range_min=-180, dst_range_max=180):
     # Ensure the value is within the source range
@@ -48,40 +50,55 @@ def client_subscriptions(client):
 
 def callback_esp32_state(client, userdata, msg):
     global esp_state
-    print('ESP  state: ', str(msg.payload.decode('utf-8')))
-    esp_state = str(msg.payload.decode('utf-8'))
+    try :
+        print('ESP  state: ', str(msg.payload.decode('utf-8')))
+        esp_state = str(msg.payload.decode('utf-8'))
+    except:
+        pass
 
 
 def callback_esp32_SteerWheelState(client, userdata, msg):
     global esp_state
-    print('ESP  SteerWheelState: ', str(msg.payload.decode('utf-8')))
+    try :
+        print('ESP  SteerWheelState: ', str(msg.payload.decode('utf-8')))
+    except:
+        pass
 
 
 def callback_esp32_Car_Speed(client, userdata, msg):
     global speed
-    print('ESP  Car Speed: ', str(msg.payload.decode('utf-8')))
-    speed = float(msg.payload.decode('utf-8'))
+    try :
+        print('ESP  Car Speed: ', str(msg.payload.decode('utf-8')))
+        speed = float(msg.payload.decode('utf-8'))
+    except:
+        pass
 
 
 def callback_esp32_CarSteer(client, userdata, msg):
     global angle
-    print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
-    angle = float(msg.payload.decode('utf-8'))
-    angle = map_value(angle)
+    try :
+        print('ESP  CarSteer: ', str(msg.payload.decode('utf-8')))
+        angle = float(msg.payload.decode('utf-8'))
+        angle = map_value(angle)
+    except:
+        pass
 
 
 def callback_esp32_sms_state(client, userdata, msg):
     global sms
-    sms = str(msg.payload.decode('utf-8'))
-    massege = str(msg.payload.decode('utf-8'))
-    print('='*30)
-    print('ESP sms state: ', massege)
-    print('='*30)
-    if massege == '1':
-        # file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w')
-        # file.write('1')
-        # file.close()
-        send_tele_msg()
+    try :
+        sms = str(msg.payload.decode('utf-8'))
+        massege = str(msg.payload.decode('utf-8'))
+        print('='*30)
+        print('ESP sms state: ', massege)
+        print('='*30)
+        if massege == '1':
+            # file = open(f'D:\Projects\Project 3\Code\carla_simulation\hparkState.txt','w')
+            # file.write('1')
+            # file.close()
+            send_tele_msg()
+    except:
+        pass
 
 
 ############################################################################
@@ -122,7 +139,7 @@ def Make_container(image: str, Title: str, content_text: str = 'None', color=ft.
 ############################################################################
 ############################ Start MQTT Broker #############################
 ############################################################################
-client = mqtt.Client("osama")
+client = mqtt.Client("osamaa")
 flag_connected = 0
 
 client.on_connect = on_connect
@@ -131,17 +148,23 @@ client.message_callback_add('esp32/state', callback_esp32_state)
 client.message_callback_add('esp32/sms_state', callback_esp32_sms_state)
 client.message_callback_add('esp32/CarSpeed', callback_esp32_Car_Speed)
 client.message_callback_add('esp32/CarSteer', callback_esp32_CarSteer)
-client.message_callback_add('esp32/SteerWheelState',callback_esp32_SteerWheelState)
 
 # client.connect('192.168.50.97', 1883)
-# client.connect('192.168.1.138', 1883)
-client.connect('127.0.0.1', 1883)
+client.connect(ip_add, 1883)
+# client.connect('127.0.0.1', 1883)
 # start a new thread
 client.loop_start()
 client_subscriptions(client)
 print("......client setup complete............")
 
-
+def publish_msg(content:str,topic:str):
+    msg = content
+    pubMsg = client.publish(
+        topic=topic,
+        payload=msg.encode('utf-8'),
+        qos=0,
+    )
+    pubMsg.wait_for_publish()
 ############################################################################
 ################################ Main Page #################################
 ############################################################################
@@ -152,16 +175,16 @@ def main(page):
 
         global steer_wheel_state
         if steer_wheel_state == 1:
+            publish_msg('0', 'esp32/s_state')
             steer_wheel_state = 0
             args.control.text = 'Steering Wheel Unlocked'
-            steer_wheel_icon.src = 'https://i.ibb.co/82jYNBN/unlocked-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png' 
-            publish_msg('0', 'esp32/SteerWheelState')
+            steer_wheel_icon.src = 'https://i.ibb.co/hcMHrg0/Locked-Padlock-Coloured-Outline-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png' 
 
         elif steer_wheel_state == 0:
+            publish_msg('1', 'esp32/s_state')
             steer_wheel_state = 1
             args.control.text = 'Steering Wheel Locked'
-            steer_wheel_icon.src = 'https://i.ibb.co/hcMHrg0/Locked-Padlock-Coloured-Outline-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png' 
-            publish_msg('1', 'esp32/SteerWheelState')
+            steer_wheel_icon.src = 'https://i.ibb.co/82jYNBN/unlocked-Padlock-Coloured-Outline-Padlock-Coloured-Outline.png' 
 
     def navigation_bar_on_change(e):
         if e.control.selected_index == 2:
