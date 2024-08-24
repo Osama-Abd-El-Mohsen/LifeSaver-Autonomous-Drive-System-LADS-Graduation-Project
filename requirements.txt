@@ -6,3 +6,4 @@ selenium
 requests
 json
 urllib
+aiohttp==3.9.0rc0

@@ -4,3 +4,4 @@ twilio
 telebot
 selenium
 python-dotenv 
+aiohttp==3.9.0rc0
