@@ -4,13 +4,20 @@
 /*************************************************************
 ******************** Define Network Config *******************
 *************************************************************/
-const char *ssid = "WE_D28CA0";
-const char *password = "31097022";
-const char *mqtt_server = "192.168.1.138";  // RPI ip
-// const char *ssid = "EC";
-// const char *password = "Hunter1235";
+// const char *ssid = "WE_D28CA0";
+// const char *password = "31097022";
+// const char *mqtt_server = "192.168.1.138";  // RPI ip
+// const char *ssid = "ELPROF";
+// const char *password = "12345678";
 // const char *mqtt_server = "192.168.199.97";  // RPI ip
+const char *ssid = "ACE";
+const char *password = "00000000";
+const char *mqtt_server = "192.168.74.97";  // RPI ip
 
+unsigned long previousMillis = 0;
+const long interval = 500;  // Interval at which to toggle (milliseconds)
+bool buzzerState = false;
+int buz_state = 2;
 int temp_steer_angle = 0;
 /*************************************************************
 ************************* define pins ************************
@@ -206,6 +213,7 @@ void connect_mqttServer() {
       client.subscribe("esp32/state");
       client.subscribe("esp32/CarSteer");
       client.subscribe("esp32/s_state");
+      client.subscribe("esp32/park_done");
       client.publish("esp32/state", "1");
     } else {
       // attempt not successful
@@ -241,19 +249,22 @@ void callback(char *topic, byte *message, unsigned int length) {
       Serial.println("Action: Turn On buzzer");
       Serial.println("=======================");
 
-      for (int i = 0; i <= 10; i++) {
-        digitalWrite(Buzzer_pin, HIGH);
-        delay(200);
-        digitalWrite(Buzzer_pin, LOW);
-        delay(200);
-      }
+      steer_angle_int = 0;
+      delay(1000);
+      buz_state = 1;
     }
 
     if (messageTemp == "0") {
       Serial.println("=======================");
       Serial.println("Action: Driver Awake");
       Serial.println("=======================");
-      digitalWrite(Buzzer_pin, LOW);
+    }
+  }
+  // Check if a message is received on the (sms_state) topic
+  if (String(topic) == "esp32/park_done") {
+    if (messageTemp == "1") {
+      buz_state = 0;
+      // digitalWrite(Buzzer_pin, LOW);
     }
   }
 
@@ -261,7 +272,7 @@ void callback(char *topic, byte *message, unsigned int length) {
   if (String(topic) == "esp32/CarSteer") {
     // map from string to float then cast it to int
     float steer_angle_float = messageTemp.toFloat();
-    float steer_angle_after_mapping = mapFloat(steer_angle_float, -1.0, 1.0, 180.0, -180.0);
+    float steer_angle_after_mapping = mapFloat(steer_angle_float, -1.0, 1.0, 360.0, -360.0);
     steer_angle_int = (int)steer_angle_after_mapping;
     temp_steer_angle = steer_angle_int;
     // if current angle not equal prev angle (to avoid noise)
@@ -278,6 +289,7 @@ void callback(char *topic, byte *message, unsigned int length) {
     // Toggle the LEDs
     digitalWrite(RedLed, !digitalRead(RedLed));
     digitalWrite(GreenLed, !digitalRead(GreenLed));
+    buz_state = 0;
 
     Serial.println("====================");
     Serial.println(sterring_wheel_state);
@@ -349,8 +361,7 @@ void loop() {
     }
   }
 
-  if(sterring_wheel_state == 1)
-  {
+  if (sterring_wheel_state == 1) {
     moveMotor(steer_angle_int);
     counter = encoder.getCount() / 2;
     Serial.println("speed");
@@ -363,12 +374,29 @@ void loop() {
     digitalWrite(L_EN, HIGH);
   }
 
-  else
-  {
+  else {
     digitalWrite(R_EN, LOW);
     digitalWrite(L_EN, LOW);
   }
 
+
+  if (buz_state == 1) {
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - previousMillis >= interval) {
+      // Save the last time you blinked the buzzer
+      previousMillis = currentMillis;
+
+      // If the buzzer is off, turn it on and vice-versa:
+      buzzerState = !buzzerState;
+
+      // Set the buzzer with the buzzerState of the variable:
+      digitalWrite(Buzzer_pin, buzzerState);
+    }
+
+  } else if (buz_state == 0) {
+    digitalWrite(Buzzer_pin, LOW);
+  }
 
 
 

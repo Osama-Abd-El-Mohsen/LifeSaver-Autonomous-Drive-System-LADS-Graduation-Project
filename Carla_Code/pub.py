@@ -21,6 +21,6 @@ def publish_msg(content:str,topic:str):
     )
     pubMsg.wait_for_publish()
 
-publish_msg('20.315','esp32/CarSpeed')
+publish_msg('1','esp32/park_done')
 # publish_msg('1','esp32/sms_state')
-publish_msg('.23','esp32/CarSteer')
+# publish_msg('.23','esp32/CarSteer')
