@@ -25,6 +25,9 @@ env:
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./GUI/Project3_GUI
 
     steps:
     - name: Checkout code
@@ -67,6 +70,9 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./GUI/Project3_GUI
 
     steps:
     - name: Checkout code
@@ -102,6 +108,9 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./GUI/Project3_GUI
 
     steps:
     - name: Checkout code
@@ -137,6 +146,9 @@ jobs:
 
   build-aab:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./GUI/Project3_GUI
 
     steps:
     - name: Checkout code
@@ -172,6 +184,9 @@ jobs:
 
   build-apk:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./GUI/Project3_GUI
 
     steps:
     - name: Checkout code
@@ -213,6 +228,9 @@ jobs:
 
   build-ipa:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./GUI/Project3_GUI
 
     steps:
     - name: Checkout code
