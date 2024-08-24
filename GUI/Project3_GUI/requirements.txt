@@ -1,4 +1,4 @@
-flet==0.22.*
+flet==0.24.0.dev3327
 paho-mqtt==1.6.1
 twilio
 telebot
